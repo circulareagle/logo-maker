@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo Craft | Professional Logo Maker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&family=JetBrains+Mono&family=Space+Grotesk:wght@500&display=swap');
+
+        body {
+            background-color: #0f172a;
+            color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .canvas-container {
+            background-image: 
+                radial-gradient(#334155 1px, transparent 1px),
+                radial-gradient(#334155 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            cursor: crosshair;
+        }
+
+        .element {
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            touch-action: none;
+            border: 1px solid transparent;
+            transition: border 0.2s;
+        }
+
+        .element:hover {
+            border: 1px dashed #6366f1;
+        }
+
+        .element.active {
+            border: 2px solid #6366f1;
+            z-index: 50;
+        }
+
+        .resize-handle {
+            width: 10px;
+            height: 10px;
+            background: #6366f1;
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            cursor: nwse-resize;
+            display: none;
+        }
+
+        .active .resize-handle {
+            display: block;
+        }
+
+        .sidebar {
+            scrollbar-width: thin;
+            scrollbar-color: #334155 #0f172a;
+        }
+
+        #export-canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="h-16 border-b border-slate-800 bg-slate-900 flex items-center justify-between px-6 z-50">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 p-2 rounded-lg">
+                <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+            </div>
+            <h1 class="text-xl font-bold tracking-tight">Logo<span class="text-indigo-500">Craft</span></h1>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <button id="btn-clear" class="text-slate-400 hover:text-white flex items-center gap-2 text-sm px-3 py-1 rounded transition">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> Clear
+            </button>
+            <button id="btn-export" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition">
+                <i data-lucide="download" class="w-4 h-4"></i> Export PNG
+            </button>
+        </div>
+    </header>
+
+    <div class="flex-1 flex overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-80 bg-slate-900 border-r border-slate-800 flex flex-col sidebar overflow-y-auto">
+            
+            <!-- Icon Selection -->
+            <div class="p-6 border-b border-slate-800">
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Add Icons</h2>
+                <div class="grid grid-cols-4 gap-2" id="icon-library">
+                    <!-- Icons populated by JS -->
+                </div>
+            </div>
+
+            <!-- Text Settings -->
+            <div class="p-6 border-b border-slate-800">
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Add Text</h2>
+                <button id="btn-add-text" class="w-full bg-slate-800 hover:bg-slate-700 p-3 rounded-lg flex items-center justify-center gap-2 border border-slate-700 transition">
+                    <i data-lucide="type" class="w-4 h-4"></i> Add Heading
+                </button>
+            </div>
+
+            <!-- Appearance Controls -->
+            <div id="controls" class="p-6 space-y-6 hidden">
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">Editor</h2>
+                
+                <!-- Color -->
+                <div class="space-y-2">
+                    <label class="text-sm text-slate-400">Color</label>
+                    <div class="flex gap-2 flex-wrap">
+                        <input type="color" id="input-color" class="w-10 h-10 rounded bg-transparent border-0 cursor-pointer">
+                        <div class="flex gap-1">
+                            <button class="preset-color w-8 h-8 rounded-full bg-white" data-color="#ffffff"></button>
+                            <button class="preset-color w-8 h-8 rounded-full bg-indigo-500" data-color="#6366f1"></button>
+                            <button class="preset-color w-8 h-8 rounded-full bg-emerald-500" data-color="#10b981"></button>
+                            <button class="preset-color w-8 h-8 rounded-full bg-amber-500" data-color="#f59e0b"></button>
+                            <button class="preset-color w-8 h-8 rounded-full bg-rose-500" data-color="#f43f5e"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Font (Only for text) -->
+                <div id="text-only-controls" class="space-y-4">
+                    <div class="space-y-2">
+                        <label class="text-sm text-slate-400">Font Family</label>
+                        <select id="select-font" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm">
+                            <option value="'Inter', sans-serif">Inter (Modern)</option>
+                            <option value="'Playfair Display', serif">Playfair (Classic)</option>
+                            <option value="'JetBrains Mono', monospace">JetBrains (Tech)</option>
+                            <option value="'Space Grotesk', sans-serif">Space (Bold)</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm text-slate-400">Content</label>
+                        <input type="text" id="input-text-val" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <!-- Size -->
+                <div class="space-y-2">
+                    <label class="text-sm text-slate-400 flex justify-between">Size <span id="size-val">100px</span></label>
+                    <input type="range" id="input-size" min="20" max="400" value="100" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                </div>
+
+                <!-- Layers -->
+                <div class="flex gap-2 pt-2">
+                    <button id="btn-duplicate" class="flex-1 bg-slate-800 hover:bg-slate-700 p-2 rounded text-xs flex items-center justify-center gap-1 border border-slate-700 transition">
+                        <i data-lucide="copy" class="w-3 h-3"></i> Duplicate
+                    </button>
+                    <button id="btn-delete" class="flex-1 bg-rose-900/30 hover:bg-rose-900/50 p-2 rounded text-xs text-rose-400 flex items-center justify-center gap-1 border border-rose-900/50 transition">
+                        <i data-lucide="trash" class="w-3 h-3"></i> Delete
+                    </button>
+                </div>
+            </div>
+
+            <!-- Empty State Info -->
+            <div id="empty-state" class="p-6 text-center text-slate-500 mt-auto mb-10">
+                <i data-lucide="mouse-pointer-2" class="w-8 h-8 mx-auto mb-2 opacity-20"></i>
+                <p class="text-xs">Select an element to edit properties</p>
+            </div>
+        </aside>
+
+        <!-- Main Canvas Area -->
+        <main class="flex-1 relative overflow-hidden flex items-center justify-center bg-slate-950">
+            <div id="canvas" class="canvas-container w-[600px] h-[600px] bg-slate-900 shadow-2xl relative border border-slate-800 rounded-lg overflow-hidden">
+                <!-- Branding elements will live here -->
+            </div>
+            
+            <!-- Zoom/Overlay Info -->
+            <div class="absolute bottom-6 left-6 text-slate-500 text-xs bg-slate-900/80 backdrop-blur px-3 py-2 rounded-full border border-slate-800">
+                600 x 600 px | Dark Mode Canvas
+            </div>
+        </main>
+    </div>
+
+    <!-- Hidden canvas for export rendering -->
+    <canvas id="export-canvas" width="1200" height="1200"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const iconLibrary = document.getElementById('icon-library');
+        const controls = document.getElementById('controls');
+        const emptyState = document.getElementById('empty-state');
+        const textOnlyControls = document.getElementById('text-only-controls');
+        const exportCanvas = document.getElementById('export-canvas');
+
+        let activeElement = null;
+        let isDragging = false;
+        let isResizing = false;
+        let startX, startY, startLeft, startTop, startWidth, startHeight;
+
+        const iconNames = [
+            'briefcase', 'rocket', 'zap', 'coffee', 'shield', 'target', 'heart', 
+            'globe', 'flame', 'code', 'camera', 'shopping-bag', 'package', 
+            'cpu', 'feather', 'anchor', 'award', 'compass', 'diamond', 'smile'
+        ];
+
+        // Init Lucide
+        lucide.createIcons();
+
+        // Populate Icon Library
+        iconNames.forEach(name => {
+            const btn = document.createElement('button');
+            btn.className = 'p-2 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition flex items-center justify-center';
+            btn.innerHTML = `<i data-lucide="${name}" class="w-6 h-6 text-slate-300"></i>`;
+            btn.onclick = () => addIconToCanvas(name);
+            iconLibrary.appendChild(btn);
+        });
+        lucide.createIcons();
+
+        function addIconToCanvas(iconName) {
+            const div = document.createElement('div');
+            div.className = 'element icon-element';
+            div.dataset.type = 'icon';
+            div.dataset.icon = iconName;
+            div.style.left = '50px';
+            div.style.top = '50px';
+            div.style.width = '100px';
+            div.style.height = '100px';
+            div.style.color = '#ffffff';
+            div.innerHTML = `
+                <i data-lucide="${iconName}" style="width: 100%; height: 100%;"></i>
+                <div class="resize-handle"></div>
+            `;
+            
+            canvas.appendChild(div);
+            lucide.createIcons();
+            selectElement(div);
+            attachEvents(div);
+        }
+
+        document.getElementById('btn-add-text').onclick = () => {
+            const div = document.createElement('div');
+            div.className = 'element text-element';
+            div.dataset.type = 'text';
+            div.style.left = '100px';
+            div.style.top = '250px';
+            div.style.fontSize = '40px';
+            div.style.color = '#ffffff';
+            div.style.fontFamily = "'Inter', sans-serif";
+            div.style.fontWeight = '800';
+            div.innerText = 'BRAND NAME';
+            
+            const handle = document.createElement('div');
+            handle.className = 'resize-handle';
+            div.appendChild(handle);
+
+            canvas.appendChild(div);
+            selectElement(div);
+            attachEvents(div);
+        };
+
+        function selectElement(el) {
+            if (activeElement) activeElement.classList.remove('active');
+            activeElement = el;
+            activeElement.classList.add('active');
+
+            controls.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+
+            // Sync controls
+            const isText = el.dataset.type === 'text';
+            textOnlyControls.style.display = isText ? 'block' : 'none';
+            
+            document.getElementById('input-color').value = rgbToHex(el.style.color);
+            document.getElementById('input-size').value = isText ? parseInt(el.style.fontSize) : parseInt(el.style.width);
+            document.getElementById('size-val').innerText = document.getElementById('input-size').value + 'px';
+            
+            if (isText) {
+                document.getElementById('input-text-val').value = el.innerText;
+                document.getElementById('select-font').value = el.style.fontFamily;
+            }
+        }
+
+        function attachEvents(el) {
+            el.onmousedown = (e) => {
+                if (e.target.classList.contains('resize-handle')) {
+                    isResizing = true;
+                } else {
+                    isDragging = true;
+                    selectElement(el);
+                }
+                
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = parseInt(el.style.left);
+                startTop = parseInt(el.style.top);
+                startWidth = parseInt(el.style.width);
+                startHeight = parseInt(el.style.height);
+                
+                e.stopPropagation();
+            };
+        }
+
+        window.onmousemove = (e) => {
+            if (!activeElement) return;
+
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            if (isDragging) {
+                activeElement.style.left = (startLeft + dx) + 'px';
+                activeElement.style.top = (startTop + dy) + 'px';
+            } else if (isResizing) {
+                if (activeElement.dataset.type === 'icon') {
+                    const size = Math.max(20, startWidth + dx);
+                    activeElement.style.width = size + 'px';
+                    activeElement.style.height = size + 'px';
+                    document.getElementById('input-size').value = size;
+                    document.getElementById('size-val').innerText = size + 'px';
+                } else {
+                    const size = Math.max(10, parseInt(activeElement.style.fontSize) + dx/2);
+                    activeElement.style.fontSize = size + 'px';
+                    document.getElementById('input-size').value = size;
+                    document.getElementById('size-val').innerText = Math.round(size) + 'px';
+                }
+            }
+        };
+
+        window.onmouseup = () => {
+            isDragging = false;
+            isResizing = false;
+        };
+
+        // UI Listeners
+        document.getElementById('input-color').oninput = (e) => {
+            if (activeElement) activeElement.style.color = e.target.value;
+        };
+
+        document.querySelectorAll('.preset-color').forEach(btn => {
+            btn.onclick = () => {
+                const color = btn.dataset.color;
+                if (activeElement) activeElement.style.color = color;
+                document.getElementById('input-color').value = color;
+            };
+        });
+
+        document.getElementById('input-size').oninput = (e) => {
+            const val = e.target.value;
+            document.getElementById('size-val').innerText = val + 'px';
+            if (!activeElement) return;
+            
+            if (activeElement.dataset.type === 'text') {
+                activeElement.style.fontSize = val + 'px';
+            } else {
+                activeElement.style.width = val + 'px';
+                activeElement.style.height = val + 'px';
+            }
+        };
+
+        document.getElementById('input-text-val').oninput = (e) => {
+            if (activeElement && activeElement.dataset.type === 'text') {
+                activeElement.childNodes[0].nodeValue = e.target.value;
+            }
+        };
+
+        document.getElementById('select-font').onchange = (e) => {
+            if (activeElement && activeElement.dataset.type === 'text') {
+                activeElement.style.fontFamily = e.target.value;
+            }
+        };
+
+        document.getElementById('btn-delete').onclick = () => {
+            if (activeElement) {
+                activeElement.remove();
+                activeElement = null;
+                controls.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+            }
+        };
+
+        document.getElementById('btn-duplicate').onclick = () => {
+            if (activeElement) {
+                const clone = activeElement.cloneNode(true);
+                clone.style.left = (parseInt(activeElement.style.left) + 20) + 'px';
+                clone.style.top = (parseInt(activeElement.style.top) + 20) + 'px';
+                clone.classList.remove('active');
+                canvas.appendChild(clone);
+                attachEvents(clone);
+                selectElement(clone);
+                if (clone.dataset.type === 'icon') lucide.createIcons();
+            }
+        };
+
+        document.getElementById('btn-clear').onclick = () => {
+            canvas.innerHTML = '';
+            activeElement = null;
+            controls.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+        };
+
+        // Export logic
+        document.getElementById('btn-export').onclick = async () => {
+            const ctx = exportCanvas.getContext('2d');
+            ctx.clearRect(0, 0, 1200, 1200);
+            
+            // Fill background
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, 1200, 1200);
+
+            const elements = canvas.querySelectorAll('.element');
+            
+            // Note: Since we can't easily draw SVG to canvas without external libraries/blobs, 
+            // we will use a workaround rendering the text and creating a data URL for icons.
+            for (const el of elements) {
+                const x = parseInt(el.style.left) * 2;
+                const y = parseInt(el.style.top) * 2;
+                const color = el.style.color;
+
+                if (el.dataset.type === 'text') {
+                    const size = parseInt(el.style.fontSize) * 2;
+                    const font = el.style.fontFamily;
+                    ctx.fillStyle = color;
+                    ctx.font = `800 ${size}px ${font}`;
+                    ctx.fillText(el.childNodes[0].nodeValue, x, y + size);
+                } else {
+                    const size = parseInt(el.style.width) * 2;
+                    const iconSvg = el.querySelector('svg').cloneNode(true);
+                    iconSvg.setAttribute('width', size);
+                    iconSvg.setAttribute('height', size);
+                    iconSvg.style.color = color;
+                    
+                    const xml = new XMLSerializer().serializeToString(iconSvg);
+                    const svg64 = btoa(xml);
+                    const b64Start = 'data:image/svg+xml;base64,';
+                    const image64 = b64Start + svg64;
+
+                    await new Promise(resolve => {
+                        const img = new Image();
+                        img.onload = () => {
+                            ctx.drawImage(img, x, y, size, size);
+                            resolve();
+                        };
+                        img.src = image64;
+                    });
+                }
+            }
+
+            const link = document.createElement('a');
+            link.download = 'my-hustle-logo.png';
+            link.href = exportCanvas.toDataURL('image/png');
+            link.click();
+        };
+
+        // Utility: RGB to Hex
+        function rgbToHex(rgb) {
+            if (!rgb || rgb.startsWith('#')) return rgb || '#ffffff';
+            const parts = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+            if (!parts) return '#ffffff';
+            delete(parts[0]);
+            for (let i = 1; i <= 3; ++i) {
+                parts[i] = parseInt(parts[i]).toString(16);
+                if (parts[i].length == 1) parts[i] = '0' + parts[i];
+            }
+            return '#' + parts.join('');
+        }
+
+        // Deselect when clicking canvas background
+        canvas.onmousedown = (e) => {
+            if (e.target === canvas) {
+                if (activeElement) activeElement.classList.remove('active');
+                activeElement = null;
+                controls.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+            }
+        };
+    </script>
+</body>
+</html>
+
