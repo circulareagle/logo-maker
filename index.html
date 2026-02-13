@@ -19,6 +19,18 @@
 <!-- Scripts with defer to maintain order -->
 <script src="https://unpkg.com/lucide@latest" defer></script>
 <script src="app.js" defer></script>
+<!-- Add this tiny script inside your <head> or at the bottom of <body> -->
+<!-- It tells the browser to look for your new sw.js file -->
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service Worker Registered!'))
+        .catch(err => console.log('Service Worker Failed', err));
+    });
+  }
+</script>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@700&family=Roboto+Mono:wght@500&family=Bebas+Neue&family=Pacifico&display=swap" rel="stylesheet">
 
