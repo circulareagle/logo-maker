@@ -16,6 +16,6 @@
   "theme_color": "#12003b",
   "background_color": "#12003b",
   "display": "standalone",
-  "start_url": "https://logo.applifier.name.ng",
+  "start_url": "logo.applifier.name.ng",
   "id": "/"
 }
