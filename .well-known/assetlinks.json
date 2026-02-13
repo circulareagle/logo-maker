@@ -1,15 +1,8 @@
-[
-  {
-    "relation": [
-      "delegate_permission/common.handle_all_urls"
-    ],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "org.chromium.webapk.adf2756a27fe2bc54_v2",
-      "sha256_cert_fingerprints": [
-        "6B:3A:00:DB:DE:85:B5:5B:BF:65:10:BE:D1:2D:D4:03:80:A8:4D:13:80:5C:90:86:1C:84:26:A8:45:64:D6:0A"
-      ]
-    }
-  }
-]
-
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "MintLogo.App",
+        "sha256_cert_fingerprints": ["2C:C5:71:44:5A:00:71:B4:D6:72:73:C3:B7:6E:16:9E:01:08:24:68:CB:28:4D:4F:B0:92:B0:E7:37:9A:57:87"]
+      }
+    }]
