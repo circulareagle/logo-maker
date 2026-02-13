@@ -1,709 +1,258 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pro Logo Studio</title>
-    
-    <!-- Favicons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <meta name="msapplication-TileColor" content="#12003b">
-    <meta name="theme-color" content="#12003b">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fabric.js (The engine behind the graphics) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-    <!-- Lucide Icons for UI -->
-    <script src="https://unpkg.com/lucide@latest" defer></script>
-    <script src="app.js" defer></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@700&family=Roboto+Mono:wght@500&family=Bebas+Neue&family=Pacifico&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pro Logo Studio</title>
+<!-- Favicons -->
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="msapplication-TileColor" content="#12003b">
+<meta name="theme-color" content="#12003b">
 
-    <style>
-        :root {
-            --bg-dark: #09090b;
-            --bg-panel: #18181b;
-            --accent: #6366f1;
-            --text-muted: #a1a1aa;
-        }
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Fabric.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<!-- Scripts with defer to maintain order -->
+<script src="https://unpkg.com/lucide@latest" defer></script>
+<script src="app.js" defer></script>
 
-        body {
-            background-color: var(--bg-dark);
-            color: white;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden; /* Prevent page scroll */
-            touch-action: none; /* Prevent browser zoom gestures */
-        }
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@700&family=Roboto+Mono:wght@500&family=Bebas+Neue&family=Pacifico&display=swap" rel="stylesheet">
 
-        /* Toolbar Scroll styling */
-        .scrolling-toolbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none; 
-            overflow-x: auto;
-            white-space: nowrap;
-            -webkit-overflow-scrolling: touch;
-        }
-        .scrolling-toolbar::-webkit-scrollbar {
-            display: none;
-        }
+<style>
+    :root { --bg-dark: #09090b; --bg-panel: #18181b; --accent: #6366f1; }
+    body { background-color: var(--bg-dark); color: white; font-family: 'Inter', sans-serif; overflow: hidden; touch-action: none; }
+    .scrolling-toolbar { -ms-overflow-style: none; scrollbar-width: none; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+    .scrolling-toolbar::-webkit-scrollbar { display: none; }
+    #canvas-wrapper {
+        background-image: linear-gradient(45deg, #1c1c1c 25%, transparent 25%), linear-gradient(-45deg, #1c1c1c 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1c1c1c 75%), linear-gradient(-45deg, transparent 75%, #1c1c1c 75%);
+        background-size: 20px 20px; display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    input[type=range] { -webkit-appearance: none; background: transparent; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: var(--accent); margin-top: -6px; }
+    input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #3f3f46; border-radius: 2px; }
+    .color-wrapper { position: relative; overflow: hidden; width: 32px; height: 32px; border-radius: 50%; border: 2px solid #3f3f46; }
+    .color-input { position: absolute; left: -50%; top: -50%; width: 200%; height: 200%; opacity: 0; cursor: pointer; }
+</style>
 
-        /* Range Slider Styling */
-        input[type=range] {
-            -webkit-appearance: none; 
-            background: transparent; 
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px; width: 16px;
-            border-radius: 50%;
-            background: var(--accent);
-            margin-top: -6px;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px;
-            background: #3f3f46;
-            border-radius: 2px;
-        }
-
-        /* Color Input hidden but clickable */
-        .color-wrapper {
-            position: relative;
-            overflow: hidden;
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            border: 2px solid #3f3f46;
-        }
-        .color-input {
-            position: absolute;
-            left: -50%; top: -50%;
-            width: 200%; height: 200%;
-            padding: 0; margin: 0;
-            cursor: pointer;
-            opacity: 0;
-        }
-        
-        /* Canvas Container */
-        #canvas-wrapper {
-            background-image: 
-                linear-gradient(45deg, #1c1c1c 25%, transparent 25%), 
-                linear-gradient(-45deg, #1c1c1c 25%, transparent 25%), 
-                linear-gradient(45deg, transparent 75%, #1c1c1c 75%), 
-                linear-gradient(-45deg, transparent 75%, #1c1c1c 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-    </style>
 </head>
 <body class="h-screen flex flex-col">
+<header class="h-14 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between px-4 z-10 shrink-0">
+    <div class="flex items-center gap-2">
+        <i data-lucide="layers" class="text-indigo-500 w-5 h-5"></i>
+        <span class="font-bold text-sm tracking-wide">STUDIO</span>
+    </div>
+    <div class="flex gap-3">
+         <button id="btn-clear" class="text-xs text-zinc-400 font-medium">Clear</button>
+         <button id="btn-export" class="bg-indigo-600 px-4 py-1.5 rounded-full text-xs font-bold text-white flex items-center gap-1">
+            Save <i data-lucide="download" class="w-3 h-3"></i>
+        </button>
+    </div>
+</header>
 
-    <!-- Header -->
-    <header class="h-14 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between px-4 z-10 shrink-0">
-        <div class="flex items-center gap-2">
-            <i data-lucide="layers" class="text-indigo-500 w-5 h-5"></i>
-            <span class="font-bold text-sm tracking-wide">STUDIO</span>
+<main id="canvas-wrapper" class="flex-1 relative w-full">
+    <canvas id="c"></canvas>
+</main>
+
+<div id="context-bar" class="bg-zinc-900 border-t border-zinc-800 shrink-0 hidden transition-all duration-200">
+    <div id="ctrl-text" class="hidden w-full flex-col p-4 gap-4">
+        <div class="flex justify-between items-center">
+            <span class="text-xs text-zinc-500 uppercase font-bold">Text Edit</span>
+            <button onclick="editTextContent()" class="text-indigo-400 text-xs font-bold border border-indigo-400 px-3 py-1 rounded">Edit Content</button>
         </div>
-        <div class="flex gap-3">
-             <button id="btn-clear" class="text-xs text-zinc-400 font-medium">Clear</button>
-             <button id="btn-export" class="bg-indigo-600 px-4 py-1.5 rounded-full text-xs font-bold text-white flex items-center gap-1">
-                Save <i data-lucide="download" class="w-3 h-3"></i>
-            </button>
+        <div class="scrolling-toolbar flex gap-4 pb-2">
+            <select id="font-family" class="bg-zinc-800 text-xs p-2 rounded w-32 outline-none text-white">
+                <option value="Inter">Inter</option>
+                <option value="Playfair Display">Playfair</option>
+                <option value="Roboto Mono">Mono</option>
+                <option value="Bebas Neue">Bebas</option>
+                <option value="Pacifico">Script</option>
+            </select>
+            <label class="bg-zinc-800 px-3 py-1 rounded text-xs flex items-center gap-2 whitespace-nowrap">
+                <i data-lucide="image" class="w-3 h-3"></i> Texture
+                <input type="file" id="text-img-fill" accept="image/*" class="hidden">
+            </label>
         </div>
-    </header>
+    </div>
 
-    <!-- Canvas Area -->
-    <main id="canvas-wrapper" class="flex-1 relative w-full">
-        <!-- The Fabric Canvas -->
-        <canvas id="c"></canvas>
-    </main>
-
-    <!-- Contextual Controls (Only visible when object selected) -->
-    <div id="context-bar" class="bg-zinc-900 border-t border-zinc-800 shrink-0 hidden transition-all duration-200">
-        
-        <!-- Text Controls -->
-        <div id="ctrl-text" class="hidden w-full flex-col p-4 gap-4">
-            <div class="flex justify-between items-center">
-                <span class="text-xs text-zinc-500 uppercase font-bold">Text Edit</span>
-                <button onclick="editTextContent()" class="text-indigo-400 text-xs font-bold border border-indigo-400 px-3 py-1 rounded">Edit Content</button>
+    <div id="ctrl-shape" class="hidden w-full flex-col p-4 gap-4">
+        <div class="flex justify-between items-center mb-1">
+            <span class="text-xs text-zinc-500 uppercase font-bold">Appearance</span>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="flex flex-col gap-1 items-center">
+                <span class="text-[10px] text-zinc-400">Fill</span>
+                <div class="color-wrapper bg-white" id="fill-preview">
+                    <input type="color" id="shape-fill" class="color-input">
+                </div>
             </div>
-            <div class="scrolling-toolbar flex gap-4 pb-2">
-                <select id="font-family" class="bg-zinc-800 text-xs p-2 rounded w-32 outline-none text-white">
-                    <option value="Inter">Inter</option>
-                    <option value="Playfair Display">Playfair</option>
-                    <option value="Roboto Mono">Mono</option>
-                    <option value="Bebas Neue">Bebas</option>
-                    <option value="Pacifico">Script</option>
-                </select>
-                <!-- Image Fill for Text -->
-                <label class="bg-zinc-800 px-3 py-1 rounded text-xs flex items-center gap-2 whitespace-nowrap">
-                    <i data-lucide="image" class="w-3 h-3"></i> Texture
-                    <input type="file" id="text-img-fill" accept="image/*" class="hidden">
+            <div class="flex flex-col gap-1 items-center">
+                <span class="text-[10px] text-zinc-400">Outline</span>
+                <div class="color-wrapper bg-transparent border-white" id="stroke-preview">
+                    <input type="color" id="shape-stroke" class="color-input">
+                </div>
+            </div>
+            <div class="flex flex-col gap-1 items-center">
+                <span class="text-[10px] text-zinc-400">Gradient</span>
+                <button onclick="applyGradient()" class="w-8 h-8 rounded-full bg-gradient-to-b from-indigo-500 to-pink-500 border-2 border-zinc-700"></button>
+            </div>
+            <div class="flex flex-col gap-1 items-center">
+                <span class="text-[10px] text-zinc-400">Img Mask</span>
+                <label class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center border-2 border-zinc-600">
+                    <i data-lucide="image" class="w-4 h-4"></i>
+                    <input type="file" id="shape-img-fill" accept="image/*" class="hidden">
                 </label>
             </div>
         </div>
-
-        <!-- Shape/Icon Controls -->
-        <div id="ctrl-shape" class="hidden w-full flex-col p-4 gap-4">
-             <div class="flex justify-between items-center mb-1">
-                <span class="text-xs text-zinc-500 uppercase font-bold">Appearance</span>
+        <div class="space-y-3 pt-2">
+            <div class="flex items-center gap-3">
+                <i data-lucide="minus-square" class="w-4 h-4 text-zinc-500"></i>
+                <input type="range" id="stroke-width" min="0" max="20" value="0" class="flex-1">
             </div>
-            
-            <!-- Color Row -->
-            <div class="flex items-center gap-6">
-                <!-- Fill Color -->
-                <div class="flex flex-col gap-1 items-center">
-                    <span class="text-[10px] text-zinc-400">Fill</span>
-                    <div class="color-wrapper bg-white" id="fill-preview">
-                        <input type="color" id="shape-fill" class="color-input">
-                    </div>
-                </div>
-                
-                <!-- Stroke Color -->
-                <div class="flex flex-col gap-1 items-center">
-                    <span class="text-[10px] text-zinc-400">Outline</span>
-                    <div class="color-wrapper bg-transparent border-white" id="stroke-preview">
-                        <input type="color" id="shape-stroke" class="color-input">
-                    </div>
-                </div>
-
-                <!-- Gradient Button -->
-                <div class="flex flex-col gap-1 items-center">
-                    <span class="text-[10px] text-zinc-400">Gradient</span>
-                    <button onclick="applyGradient()" class="w-8 h-8 rounded-full bg-gradient-to-b from-indigo-500 to-pink-500 border-2 border-zinc-700"></button>
-                </div>
-                
-                <!-- Image Texture -->
-                <div class="flex flex-col gap-1 items-center">
-                    <span class="text-[10px] text-zinc-400">Img Mask</span>
-                    <label class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center border-2 border-zinc-600">
-                        <i data-lucide="image" class="w-4 h-4"></i>
-                        <input type="file" id="shape-img-fill" accept="image/*" class="hidden">
-                    </label>
-                </div>
-            </div>
-
-            <!-- Sliders Row -->
-            <div class="space-y-3 pt-2">
-                <div class="flex items-center gap-3">
-                    <i data-lucide="minus-square" class="w-4 h-4 text-zinc-500"></i>
-                    <input type="range" id="stroke-width" min="0" max="20" value="0" class="flex-1">
-                    <span class="text-[10px] w-6">Thick</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <i data-lucide="sun" class="w-4 h-4 text-zinc-500"></i>
-                    <input type="range" id="opacity" min="0.1" max="1" step="0.1" value="1" class="flex-1">
-                    <span class="text-[10px] w-6">Opac</span>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Main Toolbar -->
-    <footer class="bg-black pb-safe shrink-0 z-20 border-t border-zinc-800">
-        <div class="scrolling-toolbar flex items-center px-2 h-16 gap-2">
-            
-            <!-- Default Tools -->
-            <button onclick="openModal('modal-icons')" class="flex flex-col items-center gap-1 min-w-[64px] text-zinc-400 active:text-white">
-                <i data-lucide="shapes" class="w-5 h-5"></i>
-                <span class="text-[10px]">Icons</span>
-            </button>
-            
-            <button onclick="addText()" class="flex flex-col items-center gap-1 min-w-[64px] text-zinc-400 active:text-white">
-                <i data-lucide="type" class="w-5 h-5"></i>
-                <span class="text-[10px]">Text</span>
-            </button>
-            
-            <label class="flex flex-col items-center gap-1 min-w-[64px] text-zinc-400 active:text-white relative">
-                <i data-lucide="image-plus" class="w-5 h-5"></i>
-                <span class="text-[10px]">Upload</span>
-                <input type="file" id="upload-img" accept="image/*" class="hidden">
-            </label>
-
-            <button onclick="toggleBg()" class="flex flex-col items-center gap-1 min-w-[64px] text-zinc-400 active:text-white">
-                <i data-lucide="palette" class="w-5 h-5"></i>
-                <span class="text-[10px]">Backgrnd</span>
-            </button>
-
-            <!-- Divider -->
-            <div class="w-[1px] h-8 bg-zinc-800 mx-2"></div>
-
-            <!-- Active Object Tools -->
-            <button onclick="bringForward()" class="flex flex-col items-center gap-1 min-w-[64px] text-zinc-400 active:text-white">
-                <i data-lucide="arrow-up-circle" class="w-5 h-5"></i>
-                <span class="text-[10px]">Up</span>
-            </button>
-            <button onclick="sendBack()" class="flex flex-col items-center gap-1 min-w-[64px] text-zinc-400 active:text-white">
-                <i data-lucide="arrow-down-circle" class="w-5 h-5"></i>
-                <span class="text-[10px]">Down</span>
-            </button>
-            <button onclick="deleteActive()" class="flex flex-col items-center gap-1 min-w-[64px] text-rose-400 active:text-rose-200">
-                <i data-lucide="trash-2" class="w-5 h-5"></i>
-                <span class="text-[10px]">Delete</span>
-            </button>
-        </div>
-    </footer>
-
-    <!-- Icon Modal -->
-    <div id="modal-icons" class="fixed inset-0 bg-black/90 z-50 hidden flex flex-col animate-fade-in">
-        <div class="p-4 flex justify-between items-center border-b border-zinc-800">
-            <h2 class="font-bold text-white">Icon Library</h2>
-            <button onclick="closeModal('modal-icons')" class="p-2 bg-zinc-800 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
-        </div>
-        <div class="flex-1 overflow-y-auto p-4">
-            <p class="text-xs text-zinc-500 mb-4">Tap to add. Icons are editable (color, stroke, fill).</p>
-            <div class="grid grid-cols-4 sm:grid-cols-6 gap-4" id="icon-grid">
-                <!-- Injected via JS -->
+            <div class="flex items-center gap-3">
+                <i data-lucide="sun" class="w-4 h-4 text-zinc-500"></i>
+                <input type="range" id="opacity" min="0.1" max="1" step="0.1" value="1" class="flex-1">
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Text Input Modal -->
-    <dialog id="text-dialog" class="bg-zinc-900 border border-zinc-700 rounded-xl p-6 backdrop:bg-black/80 w-3/4 max-w-sm">
-        <h3 class="text-white mb-2 text-sm font-bold">Edit Text</h3>
-        <input type="text" id="dialog-text-input" class="w-full bg-black border border-zinc-700 rounded p-3 text-white mb-4 outline-none focus:border-indigo-500">
-        <div class="flex justify-end gap-2">
-            <button onclick="closeTextDialog(false)" class="text-zinc-400 text-xs px-3 py-2">Cancel</button>
-            <button onclick="closeTextDialog(true)" class="bg-indigo-600 text-white text-xs px-4 py-2 rounded">Update</button>
-        </div>
-    </dialog>
+<footer class="bg-black pb-safe shrink-0 z-20 border-t border-zinc-800">
+    <div class="scrolling-toolbar flex items-center px-2 h-16 gap-2">
+        <button onclick="openModal('modal-icons')" class="flex flex-col items-center gap-1 min-w-[64px] text-zinc-400 active:text-white">
+            <i data-lucide="shapes" class="w-5 h-5"></i>
+            <span class="text-[10px]">Icons</span>
+        </button>
+        <button onclick="addText()" class="flex flex-col items-center gap-1 min-w-[64px] text-zinc-400 active:text-white">
+            <i data-lucide="type" class="w-5 h-5"></i>
+            <span class="text-[10px]">Text</span>
+        </button>
+        <label class="flex flex-col items-center gap-1 min-w-[64px] text-zinc-400 active:text-white relative">
+            <i data-lucide="image-plus" class="w-5 h-5"></i>
+            <span class="text-[10px]">Upload</span>
+            <input type="file" id="upload-img" accept="image/*" class="hidden">
+        </label>
+        <button onclick="toggleBg()" class="flex flex-col items-center gap-1 min-w-[64px] text-zinc-400 active:text-white">
+            <i data-lucide="palette" class="w-5 h-5"></i>
+            <span class="text-[10px]">Backgrnd</span>
+        </button>
+        <div class="w-[1px] h-8 bg-zinc-800 mx-2"></div>
+        <button onclick="bringForward()" class="flex flex-col items-center gap-1 min-w-[64px] text-zinc-400 active:text-white">
+            <i data-lucide="arrow-up-circle" class="w-5 h-5"></i>
+            <span class="text-[10px]">Up</span>
+        </button>
+        <button onclick="sendBack()" class="flex flex-col items-center gap-1 min-w-[64px] text-zinc-400 active:text-white">
+            <i data-lucide="arrow-down-circle" class="w-5 h-5"></i>
+            <span class="text-[10px]">Down</span>
+        </button>
+        <button onclick="deleteActive()" class="flex flex-col items-center gap-1 min-w-[64px] text-rose-400 active:text-rose-200">
+            <i data-lucide="trash-2" class="w-5 h-5"></i>
+            <span class="text-[10px]">Delete</span>
+        </button>
+    </div>
+</footer>
 
-    <script>
-        // --- 1. Canvas Setup ---
-        const canvasElement = document.getElementById('c');
-        const container = document.getElementById('canvas-wrapper');
-        
-        // Initialize Fabric
-        const canvas = new fabric.Canvas('c', {
-            backgroundColor: '#000000',
-            preserveObjectStacking: true, // Selected object stays in place in stack
-            selection: false, // Mobile: disable drag selection box
-        });
+<div id="modal-icons" class="fixed inset-0 bg-black/90 z-50 hidden flex flex-col">
+    <div class="p-4 flex justify-between items-center border-b border-zinc-800">
+        <h2 class="font-bold text-white text-sm">Icon Library</h2>
+        <button onclick="closeModal('modal-icons')" class="p-2 bg-zinc-800 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4">
+        <div class="grid grid-cols-4 gap-4" id="icon-grid"></div>
+    </div>
+</div>
 
-        // Smart Resize Logic
-        function resizeCanvas() {
-            const w = container.clientWidth;
-            const h = container.clientHeight;
-            // 90% of screen width, keep it square 1:1 for logo
-            const size = Math.min(w, h) * 0.95; 
-            
-            canvas.setWidth(size);
-            canvas.setHeight(size);
-            canvas.renderAll();
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+<dialog id="text-dialog" class="bg-zinc-900 border border-zinc-700 rounded-xl p-6 backdrop:bg-black/80 w-3/4 max-w-sm">
+    <h3 class="text-white mb-2 text-sm font-bold">Edit Text</h3>
+    <input type="text" id="dialog-text-input" class="w-full bg-black border border-zinc-700 rounded p-3 text-white mb-4 outline-none">
+    <div class="flex justify-end gap-2">
+        <button onclick="closeTextDialog(false)" class="text-zinc-400 text-xs px-3 py-2">Cancel</button>
+        <button onclick="closeTextDialog(true)" class="bg-indigo-600 text-white text-xs px-4 py-2 rounded">Update</button>
+    </div>
+</dialog>
 
-        // --- 2. Smart Guides (Snap to Center) ---
-        canvas.on('object:moving', function(e) {
-            const obj = e.target;
-            const canvasWidth = canvas.width;
-            const canvasHeight = canvas.height;
+<script>
+    // --- 1. Canvas Core ---
+    const container = document.getElementById('canvas-wrapper');
+    const canvas = new fabric.Canvas('c', {
+        backgroundColor: '#000000',
+        preserveObjectStacking: true,
+        selection: false,
+    });
 
-            // Snap Threshold
-            const snapZone = 10;
+    function resizeCanvas() {
+        const size = Math.min(container.clientWidth, container.clientHeight) * 0.95; 
+        canvas.setWidth(size);
+        canvas.setHeight(size);
+        canvas.renderAll();
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
 
-            // Vertical Center Snap
-            if (Math.abs(obj.left - canvasWidth / 2) < snapZone) {
-                obj.left = canvasWidth / 2;
-                obj.setCoords();
-                drawGuide('v');
-            } else {
-                clearGuides();
-            }
+    // --- 2. Logic & Event Handling (Fabric Side) ---
+    const contextBar = document.getElementById('context-bar');
+    const ctrlText = document.getElementById('ctrl-text');
+    const ctrlShape = document.getElementById('ctrl-shape');
 
-            // Horizontal Center Snap
-            if (Math.abs(obj.top - canvasHeight / 2) < snapZone) {
-                obj.top = canvasHeight / 2;
-                obj.setCoords();
-                drawGuide('h');
-            }
-        });
+    canvas.on('selection:created', updateUI);
+    canvas.on('selection:updated', updateUI);
+    canvas.on('selection:cleared', () => {
+        contextBar.classList.add('hidden');
+        ctrlText.classList.add('hidden');
+        ctrlShape.classList.add('hidden');
+    });
 
-        canvas.on('mouse:up', clearGuides);
-
-        function drawGuide(direction) {
-            const ctx = canvas.getContext();
-            ctx.save();
-            ctx.strokeStyle = '#ec4899'; // Pink
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            if (direction === 'v') {
-                ctx.moveTo(canvas.width / 2, 0);
-                ctx.lineTo(canvas.width / 2, canvas.height);
-            } else {
-                ctx.moveTo(0, canvas.height / 2);
-                ctx.lineTo(canvas.width, canvas.height / 2);
-            }
-            ctx.stroke();
-            ctx.restore();
-        }
-
-        function clearGuides() {
-            canvas.renderAll(); // Renders objects over the temp guide lines
-        }
-
-        // --- 3. UI/State Logic ---
-        const contextBar = document.getElementById('context-bar');
-        const ctrlText = document.getElementById('ctrl-text');
-        const ctrlShape = document.getElementById('ctrl-shape');
-
-        canvas.on('selection:created', updateUI);
-        canvas.on('selection:updated', updateUI);
-        canvas.on('selection:cleared', () => {
-            contextBar.classList.add('hidden');
-            // Reset toolbars
-            ctrlText.classList.add('hidden');
+    function updateUI() {
+        const obj = canvas.getActiveObject();
+        if (!obj) return;
+        contextBar.classList.remove('hidden');
+        if (obj.type === 'i-text') {
+            ctrlText.classList.replace('hidden', 'flex');
             ctrlShape.classList.add('hidden');
-        });
-
-        function updateUI() {
-            const obj = canvas.getActiveObject();
-            if (!obj) return;
-
-            contextBar.classList.remove('hidden');
+        } else {
+            ctrlShape.classList.replace('hidden', 'flex');
             ctrlText.classList.add('hidden');
-            ctrlShape.classList.add('hidden');
-
-            if (obj.type === 'i-text') {
-                ctrlText.classList.remove('hidden');
-                ctrlText.classList.add('flex');
-                document.getElementById('font-family').value = obj.fontFamily;
-            } else {
-                ctrlShape.classList.remove('hidden');
-                ctrlShape.classList.add('flex');
-                
-                // Sync Controls
-                document.getElementById('stroke-width').value = obj.strokeWidth || 0;
-                document.getElementById('opacity').value = obj.opacity;
-                document.getElementById('fill-preview').style.backgroundColor = obj.fill;
-                document.getElementById('stroke-preview').style.borderColor = obj.stroke || 'transparent';
-            }
         }
+    }
 
-        // --- 4. Feature Implementation ---
+    function addText() {
+        const t = new fabric.IText('BRAND', { left: 100, top: 100, fontFamily: 'Inter', fill: '#fff', fontSize: 50, fontWeight: 'bold' });
+        canvas.add(t);
+        canvas.setActiveObject(t);
+    }
 
-        // ADD TEXT
-        function addText() {
-            const text = new fabric.IText('BRAND', {
-                left: canvas.width / 2,
-                top: canvas.height / 2,
-                originX: 'center',
-                originY: 'center',
-                fontFamily: 'Inter',
-                fill: '#ffffff',
-                fontSize: 60,
-                fontWeight: 'bold',
-                editable: false // We use custom modal
-            });
-            canvas.add(text);
-            canvas.setActiveObject(text);
-        }
+    function addShape(type) {
+        let s;
+        const props = { left: 100, top: 100, fill: '#fff', width: 100, height: 100 };
+        if (type === 'circle') s = new fabric.Circle({ radius: 50, ...props });
+        else if (type === 'triangle') s = new fabric.Triangle(props);
+        else s = new fabric.Rect(props);
+        canvas.add(s);
+        canvas.setActiveObject(s);
+        closeModal('modal-icons');
+    }
 
-        // EDIT TEXT MODAL
-        const dialog = document.getElementById('text-dialog');
-        const dialogInput = document.getElementById('dialog-text-input');
+    // Modal Helpers
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-        function editTextContent() {
-            const obj = canvas.getActiveObject();
-            if (!obj) return;
-            dialogInput.value = obj.text;
-            dialog.showModal();
-        }
+    // Icon Grid Init
+    const icons = ['circle', 'triangle', 'square', 'star', 'zap', 'heart', 'anchor', 'award'];
+    const grid = document.getElementById('icon-grid');
+    icons.forEach(name => {
+        const b = document.createElement('button');
+        b.className = 'aspect-square bg-zinc-800 rounded flex items-center justify-center';
+        b.innerHTML = `<i data-lucide="${name}"></i>`;
+        b.onclick = () => ['circle', 'triangle', 'square'].includes(name) ? addShape(name) : addText(); // Simplified
+        grid.appendChild(b);
+    });
 
-        function closeTextDialog(shouldSave) {
-            if (shouldSave) {
-                const obj = canvas.getActiveObject();
-                if (obj && obj.type === 'i-text') {
-                    obj.set('text', dialogInput.value);
-                    canvas.requestRenderAll();
-                }
-            }
-            dialog.close();
-        }
+    // Fabric Style Config
+    fabric.Object.prototype.set({ transparentCorners: false, cornerColor: '#fff', cornerStrokeColor: '#6366f1', borderColor: '#6366f1', cornerSize: 12, cornerStyle: 'circle' });
+</script>
 
-        // FONT CHANGE
-        document.getElementById('font-family').addEventListener('change', function(e) {
-            const obj = canvas.getActiveObject();
-            if (obj && obj.type === 'i-text') {
-                obj.set('fontFamily', e.target.value);
-                canvas.requestRenderAll();
-            }
-        });
-
-        // ADD ICONS (Extensive List)
-        const iconList = [
-            'circle', 'triangle', 'square', 'hexagon', 'star', // Shapes
-            'zap', 'heart', 'anchor', 'award', 'coffee', 'camera', 'globe', 'home', 
-            'music', 'shopping-cart', 'truck', 'user', 'video', 'wifi', 'settings',
-            'sun', 'moon', 'umbrella', 'scissors', 'paperclip', 'mic', 'lock',
-            'key', 'headphones', 'gift', 'flag', 'eye', 'droplet', 'crown',
-            'compass', 'cloud', 'bell', 'battery', 'archive', 'activity'
-        ];
-
-        // Load Lucide SVGs into grid
-        const grid = document.getElementById('icon-grid');
-        iconList.forEach(name => {
-            const btn = document.createElement('button');
-            btn.className = 'aspect-square bg-zinc-800 hover:bg-zinc-700 rounded-lg flex items-center justify-center p-2';
-            
-            // Note: We use Lucide to generate SVG string, then parse it for Fabric
-            if (['circle', 'triangle', 'square', 'hexagon'].includes(name)) {
-                // Primitive shapes
-                 btn.innerHTML = `<div class="w-6 h-6 bg-white rounded-sm" style="${name==='circle'?'border-radius:50%':''}"></div>`;
-                 btn.onclick = () => addShape(name);
-            } else {
-                btn.innerHTML = `<i data-lucide="${name}" class="text-white"></i>`;
-                btn.onclick = () => addIcon(name);
-            }
-            grid.appendChild(btn);
-        });
-        lucide.createIcons();
-
-        function addShape(type) {
-            let shape;
-            const opts = {
-                left: canvas.width/2, top: canvas.height/2, 
-                fill: '#ffffff', stroke: '#ffffff', strokeWidth: 0,
-                originX: 'center', originY: 'center'
-            };
-
-            if (type === 'circle') shape = new fabric.Circle({ radius: 50, ...opts });
-            if (type === 'square') shape = new fabric.Rect({ width: 100, height: 100, ...opts });
-            if (type === 'triangle') shape = new fabric.Triangle({ width: 100, height: 100, ...opts });
-            
-            canvas.add(shape);
-            canvas.setActiveObject(shape);
-            closeModal('modal-icons');
-        }
-
-        function addIcon(name) {
-            // Fetch the SVG string from Lucide (simulated here by creating a temp element)
-            const temp = document.createElement('div');
-            temp.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-${name}"><use href="#lucide-${name}"></use></svg>`;
-            
-            // In a real env without full Lucide SVG library loaded, we might need manual SVG strings.
-            // WORKAROUND: We will use a standard set of paths for demo reliability.
-            // Using Fabric's path capability.
-            
-            // For this demo, let's just use Text with a Unicode symbol OR a basic shape if SVG fetch fails.
-            // However, to satisfy "Editor wants filled icon", we load a Path.
-            // Let's create a generic Path object for demonstration of Fill vs Stroke.
-            
-            // Simple approach for single file: Use Font/Text icons or basic shapes. 
-            // Better approach: Parse SVG string.
-            
-            // For stability in this specific output, let's use a reliable method:
-            // Creating a path that LOOKS like an icon (e.g. a Heart)
-            let pathStr = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
-            
-            if(name === 'star') pathStr = "M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z";
-            
-            // We default to a heart/star for complex icons in this demo to ensure it works offline without external SVG files
-            // In production, you would do fabric.loadSVGFromURL().
-            
-            const path = new fabric.Path(pathStr);
-            path.set({ 
-                left: canvas.width/2, top: canvas.height/2, originX: 'center', originY: 'center',
-                fill: 'transparent', stroke: '#ffffff', strokeWidth: 5, scaleX: 3, scaleY: 3
-            });
-            
-            canvas.add(path);
-            canvas.setActiveObject(path);
-            closeModal('modal-icons');
-        }
-
-        // COLOR & STYLE HANDLERS
-        document.getElementById('shape-fill').oninput = (e) => {
-            const obj = canvas.getActiveObject();
-            if (obj) {
-                obj.set('fill', e.target.value);
-                document.getElementById('fill-preview').style.backgroundColor = e.target.value;
-                canvas.requestRenderAll();
-            }
-        };
-
-        document.getElementById('shape-stroke').oninput = (e) => {
-            const obj = canvas.getActiveObject();
-            if (obj) {
-                obj.set('stroke', e.target.value);
-                document.getElementById('stroke-preview').style.borderColor = e.target.value;
-                canvas.requestRenderAll();
-            }
-        };
-
-        document.getElementById('stroke-width').oninput = (e) => {
-            const obj = canvas.getActiveObject();
-            if (obj) {
-                obj.set('strokeWidth', parseInt(e.target.value, 10));
-                canvas.requestRenderAll();
-            }
-        };
-
-        document.getElementById('opacity').oninput = (e) => {
-            const obj = canvas.getActiveObject();
-            if (obj) {
-                obj.set('opacity', parseFloat(e.target.value));
-                canvas.requestRenderAll();
-            }
-        };
-
-        // GRADIENT GENERATOR
-        function applyGradient() {
-            const obj = canvas.getActiveObject();
-            if (!obj) return;
-            
-            // Simple Top-Bottom Gradient
-            const gradient = new fabric.Gradient({
-                type: 'linear',
-                gradientUnits: 'percentage', // or 'pixels'
-                coords: { x1: 0, y1: 0, x2: 0, y2: 1 },
-                colorStops: [
-                    { offset: 0, color: '#6366f1' },
-                    { offset: 1, color: '#ec4899' }
-                ]
-            });
-
-            obj.set('fill', gradient);
-            canvas.requestRenderAll();
-        }
-
-        // IMAGE MASKING (Texture)
-        function handleImageFill(inputInfo) {
-            const input = document.getElementById(inputInfo);
-            input.onchange = function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = function(f) {
-                    const imgObj = new Image();
-                    imgObj.src = f.target.result;
-                    imgObj.onload = function() {
-                        const activeObj = canvas.getActiveObject();
-                        if (activeObj) {
-                            const pattern = new fabric.Pattern({
-                                source: imgObj,
-                                repeat: 'no-repeat'
-                            });
-                            activeObj.set('fill', pattern);
-                            canvas.requestRenderAll();
-                        }
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-        handleImageFill('shape-img-fill');
-        handleImageFill('text-img-fill');
-
-
-        // BACKGROUND IMAGE UPLOAD (Canvas bg)
-        document.getElementById('upload-img').onchange = (e) => {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (f) => {
-                fabric.Image.fromURL(f.target.result, (img) => {
-                    // Scale to fit
-                    if (img.width > img.height) img.scaleToWidth(canvas.width);
-                    else img.scaleToHeight(canvas.height);
-                    
-                    canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
-                        originX: 'center',
-                        originY: 'center',
-                        left: canvas.width / 2,
-                        top: canvas.height / 2
-                    });
-                });
-            };
-            reader.readAsDataURL(file);
-        };
-
-        // LAYER MANAGEMENT
-        function bringForward() {
-            const obj = canvas.getActiveObject();
-            if (obj) {
-                canvas.bringForward(obj);
-                canvas.renderAll();
-            }
-        }
-
-        function sendBack() {
-            const obj = canvas.getActiveObject();
-            if (obj) {
-                canvas.sendBackwards(obj);
-                canvas.renderAll();
-            }
-        }
-
-        function deleteActive() {
-            const obj = canvas.getActiveObject();
-            if (obj) {
-                canvas.remove(obj);
-                canvas.discardActiveObject();
-                canvas.renderAll();
-            }
-        }
-        
-        // BACKGROUND COLOR TOGGLE
-        const bgColors = ['#000000', '#ffffff', '#18181b', '#1e3a8a', '#3f2c34'];
-        let bgIndex = 0;
-        function toggleBg() {
-            bgIndex = (bgIndex + 1) % bgColors.length;
-            canvas.setBackgroundColor(bgColors[bgIndex], canvas.renderAll.bind(canvas));
-            canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas)); // Clear image if color set
-        }
-
-        document.getElementById('btn-clear').onclick = () => {
-            if(confirm('Clear canvas?')) canvas.clear();
-            canvas.setBackgroundColor('#000000');
-        };
-
-        // EXPORT
-        document.getElementById('btn-export').onclick = () => {
-            // Deselect everything to hide selection handles
-            canvas.discardActiveObject(); 
-            canvas.renderAll();
-
-            // Export high res
-            const dataURL = canvas.toDataURL({
-                format: 'png',
-                multiplier: 2 // 2x Quality (Retina)
-            });
-
-            const link = document.createElement('a');
-            link.download = `logo-studio-${Date.now()}.png`;
-            link.href = dataURL;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        };
-
-        // MODAL UTILS
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-        // Custom Selection Style (App-like look)
-        fabric.Object.prototype.set({
-            transparentCorners: false,
-            cornerColor: '#ffffff',
-            cornerStrokeColor: '#6366f1',
-            borderColor: '#6366f1',
-            cornerSize: 12,
-            padding: 10,
-            cornerStyle: 'circle',
-            borderDashArray: [4, 4]
-        });
-
-    </script>
 </body>
 </html>
-
-
