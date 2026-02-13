@@ -1,6 +1,6 @@
 {
-  "name": "Minx Logo Maker ",
-  "short_name": "Logo Maker ",
+  "name": "Minx Logo Maker",
+  "short_name": "Logo Maker",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
@@ -15,5 +15,7 @@
   ],
   "theme_color": "#12003b",
   "background_color": "#12003b",
-  "display": "standalone"
+  "display": "standalone",
+  "start_url": "https://logo.applifier.name.ng",
+  "id": "/"
 }
