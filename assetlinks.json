@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "MintLogo.App",
+        "sha256_cert_fingerprints": ["2C:C5:71:44:5A:00:71:B4:D6:72:73:C3:B7:6E:16:9E:01:08:24:68:CB:28:4D:4F:B0:92:B0:E7:37:9A:57:87"]
+      }
+    }]
