@@ -1,78 +1,84 @@
 /**
  * Mint Logo Maker - Master App Script
- * Handles: Icons, Custom UI Injection, and Native Sharing
+ * Logic: Custom Progress UI + Native Share Integration
  */
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // 1. INJECT CUSTOM PROGRESS UI
-    // This adds the "Polishing your logo" popup to your app automatically
+    // 1. Inject Custom UI (Hidden by default)
     const progressHTML = `
-        <div id="download-progress" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] backdrop-blur-sm">
-            <div class="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-4 border border-gray-100">
-                <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-100 border-t-indigo-600"></div>
+        <div id="download-progress" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] backdrop-blur-md">
+            <div class="bg-zinc-900 p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-4 border border-zinc-800">
+                <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-900 border-t-indigo-500"></div>
                 <div class="text-center">
-                    <p class="text-base font-bold text-gray-800">Polishing your logo...</p>
-                    <p class="text-xs text-gray-500">Preparing high-quality files</p>
+                    <p class="text-base font-bold text-white">Polishing your logo...</p>
+                    <p class="text-xs text-zinc-500">Optimizing for high resolution</p>
                 </div>
             </div>
         </div>
     `;
     document.body.insertAdjacentHTML('beforeend', progressHTML);
 
-    // 2. INITIALIZE ICONS
+    // 2. Initialize Lucide Icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
 
-    // 3. ATTACH SAVE LOGIC TO BUTTON
+    // 3. Connect to the Export Button
+    // We use a clean event listener to avoid conflict with index.html
     const exportBtn = document.getElementById('btn-export');
     if (exportBtn) {
         exportBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            await saveLogoNative();
+            await startNativeExport();
         });
     }
 });
 
 /**
- * The "No-Chrome" Save Engine
+ * Grabs the Fabric.js canvas content and triggers Android Native Share
  */
-async function saveLogoNative() {
+async function startNativeExport() {
     const progressUI = document.getElementById('download-progress');
     
+    // Safety check: Is the Fabric canvas globally available?
+    // In your index.html, 'canvas' is the Fabric instance.
+    if (typeof canvas === 'undefined') {
+        console.error("Canvas engine not found");
+        return;
+    }
+
     try {
-        // Show our custom progress bar
+        // Show our custom loading UI
         if (progressUI) progressUI.classList.remove('hidden');
 
-        // --- IMAGE GRABBING LOGIC ---
-        // Adjust 'logo-canvas' to match the ID of your actual canvas/image
-        const canvas = document.getElementById('logo-canvas'); 
-        let blob;
+        // 1. Prepare the Canvas (Deselect objects so handles don't show in save)
+        canvas.discardActiveObject();
+        canvas.renderAll();
 
-        if (canvas) {
-            blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
-        } else {
-            // If no canvas is found, we try to fetch the preview image
-            const previewImg = document.querySelector('#logo-preview img');
-            const response = await fetch(previewImg ? previewImg.src : 'logo.png');
-            blob = await response.blob();
-        }
+        // 2. Convert Canvas to High-Res Blob
+        // multiplier: 3 makes it high quality for printing
+        const dataURL = canvas.toDataURL({
+            format: 'png',
+            multiplier: 3
+        });
 
+        const response = await fetch(dataURL);
+        const blob = await response.blob();
         const file = new File([blob], "mint-logo.png", { type: 'image/png' });
 
-        // Hide our progress bar right before the native menu pops up
+        // Hide our UI before the system menu appears
         if (progressUI) progressUI.classList.add('hidden');
 
-        // --- TRIGGER NATIVE SHARE ---
+        // 3. Trigger Native Android Share Menu (Bypasses Chrome Bar)
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
             await navigator.share({
                 files: [file],
-                title: 'My Mint Logo',
-                text: 'Created with Mint Logo Maker',
+                title: 'My Logo Design',
+                text: 'Designed with Pro Logo Studio',
             });
         } else {
-            // Final fallback for older browsers
+            // Standard fallback if Sharing is disabled
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = "mint-logo.png";
@@ -80,7 +86,8 @@ async function saveLogoNative() {
         }
 
     } catch (error) {
-        console.error("Save interrupted:", error);
+        console.error("Export failed:", error);
         if (progressUI) progressUI.classList.add('hidden');
     }
 }
+
